@@ -1,7 +1,7 @@
 # FindKmers--Find all kmers from *.fasta files in a directory. 
-Created by Yangbo , Key Lab. for Network-based Intelligent Computing. Univ. of Jinan. 
+Created by Yangbo , Key Lab. for Network-based Intelligent Computing. University of Jinan,China.
 
-Joint program with Stanford Medical School, Palo alto, CA, USA
+Joint program with Stanford Medical School, Palo alto, CA, USA.
 
 Ver.1.00 Mar.31,2019.
 
