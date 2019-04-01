@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		23903930224FCC1600B79AB5 /* FindKmers */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FindKmers; sourceTree = BUILT_PRODUCTS_DIR; };
 		2390393A225086A900B79AB5 /* FindKmers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FindKmers.cpp; sourceTree = "<group>"; };
+		2390393C22508A3700B79AB5 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,6 +42,7 @@
 		23903927224FCC1600B79AB5 = {
 			isa = PBXGroup;
 			children = (
+				2390393C22508A3700B79AB5 /* README.md */,
 				23903932224FCC1600B79AB5 /* FindKmers */,
 				23903931224FCC1600B79AB5 /* Products */,
 			);

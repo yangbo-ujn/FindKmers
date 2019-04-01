@@ -53,37 +53,28 @@ int InsertKmer(map<string,int> &mKmer,string Line)
         for (int N=0; N<Line.length()-k+1;N++)
         {
             Str=Line.substr(N,k);
-            /*
-            It=find(mKmer.begin(),mKmer.end(),Str);
-            if (It==mKmer.end())           // not found, append this kmer
-            {
-                mKmer.push_back(Str);
-                Count++;
-            } */
             pair<map<string,int>::iterator, bool> pair1 =mKmer.insert(pair<string,int>(Str,k));
             if (pair1.second)
                 Count++;            //Increase counter if inserted
         }
     }
-    return Count;
+    return Count;           //Return the kmers added in this line
 }
 
 int AddKmer(string FName,map<string,int> &mKmer)
 {
     int iCount=0;
-    ifstream fFile;
+    ifstream fFile;                 //File name used for the sequence file
     fFile.open(FName.c_str());
     string Line;
-    vector<string> flds;
     while(fFile)
     {
         getline(fFile,Line);
         if ((Line.length() == 0) || (Line[0]=='>')) continue;
         iCount+=InsertKmer(mKmer,Line);     //Process this line, find and add kmers,
-  
     }
     fFile.close();
-    return iCount;
+    return iCount;          //Total kmers added in this file
 }
 
 int main(int argc, const char * argv[]) {
@@ -91,16 +82,17 @@ int main(int argc, const char * argv[]) {
     {
         DispHelp(); // if only type FindKmer, print help and exit
         exit(1);
-    }
+    };
     string argStr=argv[1];
-    for (int i = 1; i < argc; i++) {// other arguments
+    for (int i = 1; i < argc; i++)              //Process the  arguments
+    {
         if (i != argc) {
             argStr=argv[i];
             if (argStr == "-k") {  // Max_k
-                if ((Max_k = atoi(argv[i + 1]))>MAX_K) Max_k=MAX_K;
+                if ((Max_k = atoi(argv[i + 1]))>MAX_K) Max_k=MAX_K;  //Get Max_k
                 i=i+1;
             } else if (argStr == "-d") {
-                PathStr = argv[i + 1];
+                PathStr = argv[i + 1];          //Get input file path
                 i=i+1;
             } else
             {
