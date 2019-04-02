@@ -43,7 +43,8 @@ void DispHelp(void)
     "        FindKmers  -d ./InputData  -k 3\n"
     "        FindKmers  -k 6\n\n";
     cout<<Str;
-}
+};
+
 int InsertKmer(map<string,int> &mKmer,string Line)
 {
     int k,Count=0;
@@ -53,13 +54,15 @@ int InsertKmer(map<string,int> &mKmer,string Line)
         for (int N=0; N<Line.length()-k+1;N++)
         {
             Str=Line.substr(N,k);
-            pair<map<string,int>::iterator, bool> pair1 =mKmer.insert(pair<string,int>(Str,k));
+            pair<map<string,int>::iterator, bool> pair1 =mKmer.insert(pair<string,int>(Str,1));     //Try to insert the kmer, Number of occurrences =1
             if (pair1.second)
                 Count++;            //Increase counter if inserted
+            else
+                pair1.first->second++;      //The same kmer found, only increase the counter of this kmer
         }
     }
     return Count;           //Return the kmers added in this line
-}
+};
 
 int AddKmer(string FName,map<string,int> &mKmer)
 {
@@ -77,11 +80,32 @@ int AddKmer(string FName,map<string,int> &mKmer)
     return iCount;          //Total kmers added in this file
 }
 
-int main(int argc, const char * argv[]) {
-    if (argc < 2)   // total number of arguments
+int CheckDirFiles(string PathStr)       //Check dir and get number of *.fasta files in the dir
+{
+    DIR *dir = opendir(PathStr.c_str());
+    if (dir==NULL)
     {
-        DispHelp(); // if only type FindKmer, print help and exit
-        exit(1);
+       cout<<"Directory "+PathStr+" Not found!"<<endl;
+       exit(1);
+    }
+    dirent* p = NULL;
+    int FCount=0;
+    while((p = readdir(dir)) != NULL)
+    {
+        if(p->d_name[0] == '.') continue;  //Skip the "." and ".." in directory
+        if (strstr(p->d_name,".fasta"))
+            FCount++;       //Get number of filres
+    };
+    closedir(dir);
+    return FCount;
+};
+
+bool ProcessCMD_Line(int argc, const char *argv[])
+{
+    if (argc < 2)       // total number of arguments
+    {
+        DispHelp();     // if no argument in command  line, print help and exit
+        return false;
     };
     string argStr=argv[1];
     for (int i = 1; i < argc; i++)              //Process the  arguments
@@ -96,31 +120,25 @@ int main(int argc, const char * argv[]) {
                 i=i+1;
             } else
             {
-                PathStr = argv[0];      //The executable FindKmers itself
-                PathStr.erase((int)PathStr.rfind('/'));     //Get the current dir
+                PathStr = argv[0];      //Point to the executable FindKmers itself,
+                PathStr.erase((int)PathStr.rfind('/'));     //Get the current dir name
             };
         };
     };
-
-    DIR* dir = opendir(PathStr.c_str());
-    if (dir==NULL)
-    {
-        cout<<"Directory "+PathStr+" Not found!"<<endl;
-        return 0;
-    }
+    return true;
+};
+                        //The main procedure starts here
+int main(int argc, const char * argv[])
+{
+    if (!ProcessCMD_Line(argc, argv))   exit(1);  //Exit if no enough command line arguments
+    
+    int FCount=CheckDirFiles(PathStr);        //Check the dir and get the total number of files
+    
     dirent* p = NULL;
-    int FCount=0;
+    DIR *dir = opendir(PathStr.c_str());         //Re-open the dir
     while((p = readdir(dir)) != NULL)
     {
-        if(p->d_name[0] == '.') continue;  //Skip the "." and ".." in directory
-        if (strstr(p->d_name,".fasta"))
-            FCount++;       //Get number of filres
-    };
-    closedir(dir);
-    dir = opendir(PathStr.c_str());         //Re-open the dir
-    while((p = readdir(dir)) != NULL)
-    {
-                    //Skip the "." and ".." hiden file name in UNIX
+                    //only process *.fasta files, Skip the "." and ".." hiden file name and other files
         if (strstr(p->d_name,".fasta"))
         {
             string FName = PathStr +"/"+string(p->d_name);
@@ -132,11 +150,10 @@ int main(int argc, const char * argv[]) {
     cout<<TotalFiles<<" files processed. Totally "<<mapKmer.size()<<" kmers found."<< endl;
     closedir(dir);          //close the directory
     
-    ofstream Fout;
+    ofstream Fout;          //File used for output
     Fout.open(PathStr+"/Kmers.txt");
-    
     for( map<string,int>::iterator it = mapKmer.begin();it!=mapKmer.end();it++)
-        Fout << it->first<< endl;
+        Fout << it->first << "\t" << it->second<< endl;         //Write two colums, first is kmer, second is the number of occurrences
     cout<<"Kmers written to file: "+PathStr+"/Kmers.txt"<<endl;
     Fout.close();
 }
