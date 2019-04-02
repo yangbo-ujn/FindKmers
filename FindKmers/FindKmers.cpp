@@ -31,6 +31,8 @@ string PathStr;
 int TotalFiles=0;
 int Max_k=4;        //Default to 4
 map <string,int> mapKmer;
+bool bSingleFileOutput=false;           //Default to output a whole file
+string  OutFileName="Kmers.txt";
 
 // Usage:  FindKmers  -d Directory -k Max_k
 void DispHelp(void)
@@ -38,10 +40,15 @@ void DispHelp(void)
     string Str="\n"
     "FindKmer: Find all kmers from *.fasta files in a directory. (ver.1.0)\n"
     "   -by Yangbo , Key Lab. for Network-based Intelligent Computing. Univ. of Jinan\n"
-    "Usage:  FindKmers  -d Directory(default to curent) -k Max_k(default to 4,max 8)\n"
-    "eg.:    FindKmers\n"
-    "        FindKmers  -d ./InputData  -k 3\n"
-    "        FindKmers  -k 6\n\n";
+    "\n"
+    "Usage:  FindKmers  [options]"
+    "\n"
+    "Options:\n"
+    "   -k INT      Max. length of kmers, consider all kmers of length 1,2,...,INT. default to 4, max to 8. \n"
+    "   -d STR      Directory path where the input files located, if not given, default to current directory.\n"
+    "   -o STR      Output file name, the output file contains kmers counts for all input files. default to ""Kmers.txt""\n"
+    "   -s          If given, the program output individal file for each input file using name ended with kmers.txt\n"
+    "\n";
     cout<<Str;
 };
 
@@ -100,6 +107,17 @@ int CheckDirFiles(string PathStr)       //Check dir and get number of *.fasta fi
     return FCount;
 };
 
+void OutputMapFile(map<string,int> &Map,string FileName)
+{
+    ofstream Fout;          //File used for output
+    Fout.open(FileName);
+    for( map<string,int>::iterator it = mapKmer.begin();it!=mapKmer.end();it++)
+        Fout << it->first << "\t" << it->second<< endl;         //Write two colums, first is kmer, second is the number of occurrences
+    cout<<"Kmers written to file: "+FileName<<endl;
+    Fout.close();
+    Map.clear();        //Clear the map, ready for next use
+}
+
 bool ProcessCMD_Line(int argc, const char *argv[])
 {
     if (argc < 2)       // total number of arguments
@@ -108,6 +126,9 @@ bool ProcessCMD_Line(int argc, const char *argv[])
         return false;
     };
     string argStr=argv[1];
+    PathStr = argv[0];      //Point to the executable FindKmers itself,
+    PathStr.erase((int)PathStr.rfind('/'));     //Get the current dir name
+    
     for (int i = 1; i < argc; i++)              //Process the  arguments
     {
         if (i != argc) {
@@ -117,12 +138,13 @@ bool ProcessCMD_Line(int argc, const char *argv[])
                 i=i+1;
             } else if (argStr == "-d") {
                 PathStr = argv[i + 1];          //Get input file path
-                i=i+1;
-            } else
-            {
-                PathStr = argv[0];      //Point to the executable FindKmers itself,
-                PathStr.erase((int)PathStr.rfind('/'));     //Get the current dir name
-            };
+                i=i+1;          //Skip next argument
+            } else if (argStr=="-s"){
+                bSingleFileOutput=true;
+            } else if (argStr=="-o") {
+                OutFileName=argv[i+1];          //Get the total output file name
+                i=i+1;      //Skip next argument
+            }
         };
     };
     return true;
@@ -133,6 +155,7 @@ int main(int argc, const char * argv[])
     if (!ProcessCMD_Line(argc, argv))   exit(1);  //Exit if no enough command line arguments
     
     int FCount=CheckDirFiles(PathStr);        //Check the dir and get the total number of files
+    int KmersAdded=0;
     
     dirent* p = NULL;
     DIR *dir = opendir(PathStr.c_str());         //Re-open the dir
@@ -145,15 +168,14 @@ int main(int argc, const char * argv[])
             int Count=AddKmer(FName,mapKmer);
             TotalFiles++;           //Increase the counter
             cout<<"File "<<TotalFiles<< "/"<<FCount<<" k="<<Max_k<<": "<<FName<<" processed. "<<Count<<" kmers added."<< endl;
+            KmersAdded+=Count;          //Total Count
+            if (bSingleFileOutput)
+                OutputMapFile(mapKmer, FName.replace(FName.find("fasta"),OutFileName.size(),OutFileName));     //Output the kmers for each input file
         }
     }
-    cout<<TotalFiles<<" files processed. Totally "<<mapKmer.size()<<" kmers found."<< endl;
+    cout<<endl<<TotalFiles<<" files processed. Totally "<<KmersAdded<<" kmers found."<< endl;
     closedir(dir);          //close the directory
-    
-    ofstream Fout;          //File used for output
-    Fout.open(PathStr+"/Kmers.txt");
-    for( map<string,int>::iterator it = mapKmer.begin();it!=mapKmer.end();it++)
-        Fout << it->first << "\t" << it->second<< endl;         //Write two colums, first is kmer, second is the number of occurrences
-    cout<<"Kmers written to file: "+PathStr+"/Kmers.txt"<<endl;
-    Fout.close();
+   
+    if (!bSingleFileOutput)
+        OutputMapFile(mapKmer, PathStr+"/"+OutFileName);       //Output all kmers found in every input file into one output file.
 }
