@@ -63,7 +63,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-d /Users/yangbo/Desktop/UserData/SkpLogo/Input   -k 3  -o dog.txt"
+            argument = "-d /Users/yangbo/Desktop/UserData/Skplogo/Input  -k 4 -s"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

@@ -41,7 +41,7 @@ void DispHelp(void)
     string Str="\n"
     "FindKmer: Find all kmers from *.fasta files in a directory. (ver.1.10)\n"
     "   -Yangbo , Key Lab. for Network-based Intelligent Computing, Univ. of Jinan,China.\n"
-    "   -Sunny,Stanford Medical School,Palo Alto,CA,USA."
+    "   -Sunny,Stanford Medical School,Palo Alto,CA,USA.\n"
     "\n"
     "Usage:  FindKmers  [options]"
     "\n"
@@ -157,8 +157,14 @@ int main(int argc, const char * argv[])
     if (!ProcessCMD_Line(argc, argv))   exit(1);  //Exit if no enough command line arguments
     
     int FCount=CheckDirFiles(PathStr);        //Check the dir and get the total number of files
-    int KmersAdded=0;
+    if (FCount==0)
+    {
+        cout<<"No .fasta file found. Check the agruments entered in command line."<<endl;
+        DispHelp();
+        exit(1);            //Program ended
+    }
     
+    int KmersAdded=0;
     dirent* p = NULL;
     DIR *dir = opendir(PathStr.c_str());         //Re-open the dir
     while((p = readdir(dir)) != NULL)
