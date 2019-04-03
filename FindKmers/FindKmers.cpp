@@ -1,8 +1,9 @@
 /* ----------------------------------------------------------------------------------------------------*/
-//      FindKmer: Find all kmers from *.fasta files in a directory. (ver.1.0)
+//      FindKmer: Find all kmers from *.fasta files in a directory.
 //      Created by Yangbo , Key Lab. for Network-based Intelligent Computing. Univ. of Jinan
 //              Sunny, Stanford Medical School, Palo alto, CA, USA
 //      Ver.1.00 Mar.31,2019.
+//      Ver.1.10 April.3,2019.  -s -o command line arguments added.
 //
 //      Usage:  FindKmers  -d Directory(default to curent) -k Max_k(default to 4,max 8)
 //      eg.:    FindKmers
@@ -38,16 +39,17 @@ string  OutFileName="Kmers.txt";
 void DispHelp(void)
 {
     string Str="\n"
-    "FindKmer: Find all kmers from *.fasta files in a directory. (ver.1.0)\n"
-    "   -by Yangbo , Key Lab. for Network-based Intelligent Computing. Univ. of Jinan\n"
+    "FindKmer: Find all kmers from *.fasta files in a directory. (ver.1.10)\n"
+    "   -Yangbo , Key Lab. for Network-based Intelligent Computing, Univ. of Jinan,China.\n"
+    "   -Sunny,Stanford Medical School,Palo Alto,CA,USA."
     "\n"
     "Usage:  FindKmers  [options]"
     "\n"
     "Options:\n"
     "   -k INT      Max. length of kmers, consider all kmers of length 1,2,...,INT. default to 4, max to 8. \n"
-    "   -d STR      Directory path where the input files located, if not given, default to current directory.\n"
-    "   -o STR      Output file name, the output file contains kmers counts for all input files. default to ""Kmers.txt""\n"
-    "   -s          If given, the program output individal file for each input file using name ended with kmers.txt\n"
+    "   -d STR      Directory path where the FASTA files located, if not given, default to current directory.\n"
+    "   -o STR      Output file name, the output file contains kmers for all input files. default to ""Kmers.txt""\n"
+    "   -s          -o is ignored, output individal file for each input file using name ended with kmers.txt.\n"
     "\n";
     cout<<Str;
 };
