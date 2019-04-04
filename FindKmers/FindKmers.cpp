@@ -4,11 +4,12 @@
 //              Sunny, Stanford Medical School, Palo alto, CA, USA
 //      Ver.1.00 Mar.31,2019.
 //      Ver.1.10 April.3,2019.  -s -o command line arguments added.
+//      Ver.2.00 April.4,2019, -s option deleted，output files added position information
 //
 //      Usage:  FindKmers  -d Directory(default to curent) -k Max_k(default to 4,max 8)
 //      eg.:    FindKmers
-//              FindKmers  -d ./InputData  -k 3
-//              FindKmers  -k 6
+//              FindKmers  -d ./InputData  -k 3 -o dog.txt
+//              FindKmers  -k 6 -s
 //
 //  Copyright © 2019 Yangbo,Sunny. All rights reserved.
 /*------------------------------------------------------------------------------------------------------*/
@@ -31,49 +32,56 @@ using namespace std;
 string PathStr;
 int TotalFiles=0;
 int Max_k=4;        //Default to 4
-map <string,int> mapKmer;
-bool bSingleFileOutput=false;           //Default to output a whole file
-string  OutFileName="Kmers.txt";
+map <string,vector<int>> mapKmer;
+bool bSingleFileOutput=true;            //Default to output each single file
+string  OutFileName="Kmers.txt";        //Default to Kmers.txt
 
 // Usage:  FindKmers  -d Directory -k Max_k
-void DispHelp(void)
+void DispHelp(bool bHelp)
 {
-    string Str="\n"
-    "FindKmer: Find all kmers from *.fasta files in a directory. (ver.1.10)\n"
+    string Str1="\n"
+    "FindKmer: Find all kmers from *.fasta files in a directory. (ver.2.00)\n"
     "   -Yangbo , Key Lab. for Network-based Intelligent Computing, Univ. of Jinan,China.\n"
     "   -Sunny,Stanford Medical School,Palo Alto,CA,USA.\n"
-    "\n"
+    "\n";
+    string Str2=
     "Usage:  FindKmers  [options]"
     "\n"
     "Options:\n"
     "   -k INT      Max. length of kmers, consider all kmers of length 1,2,...,INT. default to 4, max to 8. \n"
     "   -d STR      Directory path where the FASTA files located, if not given, default to current directory.\n"
     "   -o STR      Output file name, the output file contains kmers for all input files. default to ""Kmers.txt""\n"
-    "   -s          -o is ignored, output individal file for each input file using name ended with kmers.txt.\n"
+    "   if -o is not given, output individal file for each input file using name ended with kmers.txt.\n"
     "\n";
-    cout<<Str;
+    cout<<Str1;
+    if (bHelp) cout<<Str2;
 };
 
-int InsertKmer(map<string,int> &mKmer,string Line)
+int InsertKmer(map<string,vector<int>> &mKmer,string Line)
 {
     int k,Count=0;
+    vector<int> vPosCount(1,0);          //Create a vector only contain 1 elements for total counter
     string Str;
+    
     for (k=1;k<=Max_k;k++)
     {
+        if (bSingleFileOutput)
+            vPosCount.resize(Line.length()-k+1,0);     //Resize the vector with position cunter elements
         for (int N=0; N<Line.length()-k+1;N++)
         {
             Str=Line.substr(N,k);
-            pair<map<string,int>::iterator, bool> pair1 =mKmer.insert(pair<string,int>(Str,1));     //Try to insert the kmer, Number of occurrences =1
-            if (pair1.second)
-                Count++;            //Increase counter if inserted
+            pair<map<string,vector<int>>::iterator, bool> pair1 =mKmer.insert(pair<string,vector<int>>(Str,vPosCount));                         //Try to insert the kmer, Number of occurrences =1
+            if (bSingleFileOutput)
+                pair1.first->second[N]++;     //If inserted and using single file output,count in this postion
             else
-                pair1.first->second++;      //The same kmer found, only increase the counter of this kmer
-        }
+                pair1.first->second[0]++;     //If already exist and -o option, only increase vector[0] as counter
+            if (pair1.second) Count++;            //If inserted new kmer,Increase Total unmber of Kmers
+        };
     }
     return Count;           //Return the kmers added in this line
 };
 
-int AddKmer(string FName,map<string,int> &mKmer)
+int AddKmer(string FName,map<string,vector<int>> &mKmer)
 {
     int iCount=0;
     ifstream fFile;                 //File name used for the sequence file
@@ -109,12 +117,17 @@ int CheckDirFiles(string PathStr)       //Check dir and get number of *.fasta fi
     return FCount;
 };
 
-void OutputMapFile(map<string,int> &Map,string FileName)
+void OutputMapFile(map<string,vector<int>> &Map,string FileName)
 {
     ofstream Fout;          //File used for output
     Fout.open(FileName);
-    for( map<string,int>::iterator it = mapKmer.begin();it!=mapKmer.end();it++)
-        Fout << it->first << "\t" << it->second<< endl;         //Write two colums, first is kmer, second is the number of occurrences
+    for( map<string,vector<int>>::iterator it = mapKmer.begin();it!=mapKmer.end();it++)
+    {                   //Write N colums, first is kmer, followed with number of occurrences in each position
+        Fout << it->first ;             //The kmer string
+        for (int I=0;I<it->second.size();I++)       //The count, if -o option, only vector[0] used for counter
+            Fout<<"\t"<< it->second[I];
+        Fout<<endl;
+    };
     cout<<"Kmers written to file: "+FileName<<endl;
     Fout.close();
     Map.clear();        //Clear the map, ready for next use
@@ -124,9 +137,11 @@ bool ProcessCMD_Line(int argc, const char *argv[])
 {
     if (argc < 2)       // total number of arguments
     {
-        DispHelp();     // if no argument in command  line, print help and exit
+        DispHelp(true);     // if no argument in command  line, print help and exit
         return false;
-    };
+    } else
+        DispHelp(false);    //Only display program message
+    
     string argStr=argv[1];
     PathStr = argv[0];      //Point to the executable FindKmers itself,
     PathStr.erase((int)PathStr.rfind('/'));     //Get the current dir name
@@ -136,15 +151,15 @@ bool ProcessCMD_Line(int argc, const char *argv[])
         if (i != argc) {
             argStr=argv[i];
             if (argStr == "-k") {  // Max_k
-                if ((Max_k = atoi(argv[i + 1]))>MAX_K) Max_k=MAX_K;  //Get Max_k
+                if (argv[i+1])
+                    if ((Max_k = atoi(argv[i + 1]))>MAX_K) Max_k=MAX_K;  //Get Max_k
                 i=i+1;
             } else if (argStr == "-d") {
-                PathStr = argv[i + 1];          //Get input file path
+                if (argv[i+1]) PathStr = argv[i + 1];          //Get input file path
                 i=i+1;          //Skip next argument
-            } else if (argStr=="-s"){
-                bSingleFileOutput=true;
             } else if (argStr=="-o") {
-                OutFileName=argv[i+1];          //Get the total output file name
+                if (argv[i+1])  OutFileName=argv[i+1];          //Get the total output file name
+                bSingleFileOutput=false;        //Do not output single file
                 i=i+1;      //Skip next argument
             }
         };
@@ -154,13 +169,13 @@ bool ProcessCMD_Line(int argc, const char *argv[])
                         //The main procedure starts here
 int main(int argc, const char * argv[])
 {
-    if (!ProcessCMD_Line(argc, argv))   exit(1);  //Exit if no enough command line arguments
+    if (!ProcessCMD_Line(argc, argv))  exit(1);  //Exit if no enough command line arguments
     
     int FCount=CheckDirFiles(PathStr);        //Check the dir and get the total number of files
     if (FCount==0)
     {
-        cout<<"No .fasta file found. Check the agruments entered in command line."<<endl;
-        DispHelp();
+        cout<<"No .fasta file found. Check the arguments entered in command line."<<endl;
+        DispHelp(true);
         exit(1);            //Program ended
     }
     
