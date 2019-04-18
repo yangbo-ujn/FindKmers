@@ -57,25 +57,25 @@ void DispHelp(bool bHelp)
     if (bHelp) cout<<Str2;
 };
 
-int InsertKmer(map<string,vector<int>> &mKmer,string Line)
+int InsertKmer(map<string,vector<int>> &mKmer,string SeqLine)
 {
-    int k,Count=0;
+    int K,Count=0;
     vector<int> vPosCount(1,0);          //Create a vector only contain 1 elements for total counter
     string Str;
     
-    for (k=1;k<=Max_k;k++)
+    for (K=1;K<=Max_k;K++)
     {
         if (bSingleFileOutput)
-            vPosCount.resize(Line.length()-k+1,0);     //Resize the vector with position cunter elements
-        for (int N=0; N<Line.length()-k+1;N++)
+            vPosCount.resize(SeqLine.length()-K+1,0);   //Resize the vector with position cunter elements
+        for (int N=0; N<SeqLine.length()-K+1;N++)
         {
-            Str=Line.substr(N,k);
-            pair<map<string,vector<int>>::iterator, bool> pair1 =mKmer.insert(pair<string,vector<int>>(Str,vPosCount));                         //Try to insert the kmer, Number of occurrences =1
+            Str=SeqLine.substr(N,K);
+            pair<map<string,vector<int>>::iterator, bool> pair1 =mKmer.insert(pair<string,vector<int>>(Str,vPosCount));  //Try to insert the kmer, Number of occurrences =0
             if (bSingleFileOutput)
-                pair1.first->second[N]++;     //If inserted and using single file output,count in this postion
+                pair1.first->second[N]++;           //If inserted and using single file output,increase the counter in this postion
             else
-                pair1.first->second[0]++;     //If already exist and -o option, only increase vector[0] as counter
-            if (pair1.second) Count++;            //If inserted new kmer,Increase Total unmber of Kmers
+                pair1.first->second[0]++;           //If already exist and -o option, only increase vector[0] as total counter
+            if (pair1.second) Count++;              //If inserted new kmer,Increase Total unmber of Kmers
         };
     }
     return Count;           //Return the kmers added in this line
