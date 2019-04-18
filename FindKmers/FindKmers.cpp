@@ -60,13 +60,13 @@ void DispHelp(bool bHelp)
 int InsertKmer(map<string,vector<int>> &mKmer,string SeqLine)
 {
     int K,Count=0;
-    vector<int> vPosCount(1,0);          //Create a vector only contain 1 elements for total counter
+    vector<int> vPosCount(1,0);          //Create a vector only contain 1 elements for total counter initially set to zreo
     string Str;
     
     for (K=1;K<=Max_k;K++)
     {
         if (bSingleFileOutput)
-            vPosCount.resize(SeqLine.length()-K+1,0);   //Resize the vector with position cunter elements
+            vPosCount.resize(SeqLine.length()-K+1,0);  //Resize the vector with suitable number of position cunters initially set to zero
         for (int N=0; N<SeqLine.length()-K+1;N++)
         {
             Str=SeqLine.substr(N,K);
@@ -75,10 +75,10 @@ int InsertKmer(map<string,vector<int>> &mKmer,string SeqLine)
                 pair1.first->second[N]++;           //If inserted and using single file output,increase the counter in this postion
             else
                 pair1.first->second[0]++;           //If already exist and -o option, only increase vector[0] as total counter
-            if (pair1.second) Count++;              //If inserted new kmer,Increase Total unmber of Kmers
+            if (pair1.second) Count++;              //If inserted a new kmer,Increase Total unmber of Kmers
         };
     }
-    return Count;           //Return the kmers added in this line
+    return Count;           //Return the kmers added in this sequence line
 };
 
 int AddKmer(string FName,map<string,vector<int>> &mKmer)
